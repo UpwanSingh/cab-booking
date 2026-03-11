@@ -365,7 +365,7 @@ export default function BookRide() {
 
                                 {/* PICKUP search input */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                                    <div style={{ position: 'relative', zIndex: 10 }}>
+                                    <div style={{ position: 'relative', zIndex: 9999, isolation: 'isolate', transform: 'translateZ(10px)' }}>
                                         <div style={{
                                             display: 'flex', alignItems: 'center', gap: '10px', borderRadius: 'var(--radius-sm)',
                                             background: mode === 'pickup' ? 'var(--accent-glow)' : 'var(--bg-glass)',
@@ -406,7 +406,7 @@ export default function BookRide() {
                                     </div>
 
                                     {/* DROP search input */}
-                                    <div style={{ position: 'relative', zIndex: 5 }}>
+                                    <div style={{ position: 'relative', zIndex: 1, isolation: 'isolate', transform: 'translateZ(0)' }}>
                                         <div style={{
                                             display: 'flex', alignItems: 'center', gap: '10px', borderRadius: 'var(--radius-sm)',
                                             background: mode === 'drop' ? 'var(--accent-glow)' : 'var(--bg-glass)',
