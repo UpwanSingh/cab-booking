@@ -12,7 +12,8 @@ export function SocketProvider({ children }) {
         if (!user) { setSocket(null); return; }
 
         const token = localStorage.getItem('accessToken');
-        const newSocket = io('/', {
+        const socketUrl = import.meta.env.VITE_API_URL || '/';
+        const newSocket = io(socketUrl, {
             auth: { token },
             transports: ['websocket', 'polling'],
         });
