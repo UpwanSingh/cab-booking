@@ -19,7 +19,7 @@ async function ensureSimDriver(pickupCoords) {
         user = await User.create({
             name: SIM_DRIVER_NAME,
             phone: SIM_DRIVER_PHONE,
-            email: 'sim@cabgo.local',
+            email: 'sim@cabgo.com',
             password: 'sim_password_never_used_for_login',
             role: 'DRIVER',
             isVerified: true,

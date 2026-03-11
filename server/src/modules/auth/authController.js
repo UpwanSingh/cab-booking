@@ -174,7 +174,7 @@ exports.guestLogin = async (req, res, next) => {
         const user = await User.create({
             name: guestName,
             phone: guestId,
-            email: `${guestName.toLowerCase()}@guest.cabgo.local`,
+            email: `${guestName.toLowerCase()}@guest.cabgo.com`,
             password: `guest_${guestId}`,
             role: 'PASSENGER',
             isVerified: true,
