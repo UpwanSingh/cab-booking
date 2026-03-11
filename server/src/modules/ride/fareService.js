@@ -6,7 +6,7 @@ const FARE_CONFIG = {
 };
 
 const TAX_RATE = 0.05; // 5% GST
-const PLATFORM_COMMISSION = 0.20; // 20%
+const PLATFORM_COMMISSION = 0.10; // 20%
 
 /**
  * Calculate fare estimate
