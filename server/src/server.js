@@ -8,17 +8,17 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
 
-const connectDB = require('./config/db');
-const { setupSocketHandlers } = require('./services/socketService');
-const errorHandler = require('./middleware/errorHandler');
+const connectDB = require('./core/config/db');
+const { setupSocketHandlers } = require('./core/services/socketService');
+const errorHandler = require('./core/middleware/errorHandler');
 
 // Route imports
-const authRoutes = require('./routes/authRoutes');
-const rideRoutes = require('./routes/rideRoutes');
-const driverRoutes = require('./routes/driverRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const ratingRoutes = require('./routes/ratingRoutes');
+const authRoutes = require('./modules/auth/authRoutes');
+const rideRoutes = require('./modules/ride/rideRoutes');
+const driverRoutes = require('./modules/driver/driverRoutes');
+const adminRoutes = require('./modules/admin/adminRoutes');
+const paymentRoutes = require('./modules/payment/paymentRoutes');
+const ratingRoutes = require('./modules/rating/ratingRoutes');
 
 // Connect to MongoDB
 connectDB();
