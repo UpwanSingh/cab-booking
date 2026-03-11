@@ -50,7 +50,7 @@ export default function Wallet() {
         <div className="page animate-fadeIn">
             <h1>👛 My Wallet</h1>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
+            <div className="grid-2 mt-3">
                 {/* Balance & Top-up Card */}
                 <div className="card">
                     <div style={{
