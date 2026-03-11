@@ -4,7 +4,6 @@ const Payment = require('../payment/paymentModel');
 const AppError = require('../../core/utils/AppError');
 const { calculateFare, estimateDistanceAndDuration, getAllFareEstimates } = require('./fareService');
 const { assignRide, resolveDriverResponse } = require('./allocationService');
-const { simulateRideFlow } = require('./driverSimulationService');
 
 // @desc    Fare estimate
 // @route   POST /api/v1/rides/estimate
@@ -61,9 +60,13 @@ exports.requestRide = async (req, res, next) => {
             try {
                 const driver = await assignRide(ride, io);
                 if (!driver) {
-                    // No real driver found — trigger auto simulation
-                    console.log('🤖 No real drivers found. Starting auto-simulation...');
-                    simulateRideFlow(ride, io).catch(err => console.error('Simulation error:', err));
+                    // No real driver found or accepted within timeout
+                    console.log('❌ No real drivers available. Cancelling ride...');
+                    ride.status = 'CANCELLED_BY_SYSTEM';
+                    ride.cancellationReason = 'No drivers available';
+                    await ride.save();
+
+                    io.to(`user_${ride.passengerId}`).emit('ride:no_drivers', { rideId: ride._id });
                 }
             } catch (err) {
                 console.error('Allocation error:', err);
