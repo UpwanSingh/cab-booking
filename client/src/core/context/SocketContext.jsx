@@ -12,8 +12,8 @@ export function SocketProvider({ children }) {
         if (!user) { setSocket(null); return; }
 
         const token = localStorage.getItem('accessToken');
-        const socketUrl = import.meta.env.VITE_API_URL || '/';
-        const newSocket = io(socketUrl, {
+        const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://cabgo-backend-production.up.railway.app';
+        const newSocket = io(SOCKET_URL, {
             auth: { token },
             transports: ['websocket', 'polling'],
         });
