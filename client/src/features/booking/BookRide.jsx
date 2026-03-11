@@ -280,7 +280,7 @@ export default function BookRide() {
     };
 
     const searchDropdownStyle = {
-        position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+        position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
         background: 'var(--bg-surface)', border: '1px solid var(--border)',
         borderRadius: '0 0 var(--radius-sm) var(--radius-sm)',
         maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
