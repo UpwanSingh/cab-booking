@@ -321,3 +321,28 @@ exports.getHistory = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Raise SOS Emergency flag
+// @route   POST /api/v1/rides/:id/sos
+exports.raiseSOS = async (req, res, next) => {
+    try {
+        const Ride = require('./rideModel');
+        const AppError = require('../../core/utils/AppError');
+
+        const ride = await Ride.findById(req.params.id);
+        if (!ride) return next(new AppError('Ride not found', 404));
+
+        ride.status = 'EMERGENCY';
+        await ride.save();
+
+        const io = req.app.get('io');
+        // Alert the passenger and driver involved
+        io.to(`ride_${ride._id}`).emit('ride:sos_active', { rideId: ride._id, initiatedBy: req.user._id });
+        // Alert all Admins globally
+        io.to('admin').emit('admin:sos_alert', { rideId: ride._id, location: ride.currentLocation });
+
+        res.json({ success: true, message: 'Emergency SOS activated. Admins alerted.' });
+    } catch (error) {
+        next(error);
+    }
+};

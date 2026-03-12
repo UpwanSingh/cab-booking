@@ -117,6 +117,17 @@ export default function DriverDashboard() {
         } catch (err) { setStatusMsg(err.response?.data?.error?.message || 'Error'); }
     };
 
+    const handleSOS = async () => {
+        if (!activeRide) return;
+        if (!window.confirm("CRITICAL: Are you sure you want to trigger an Emergency SOS? This will alert Admins immediately.")) return;
+        try {
+            await api.post(`/rides/${activeRide._id}/sos`);
+            setStatusMsg('🚨 EMERGENCY SOS ACTIVATED');
+        } catch (err) {
+            console.error('SOS failed to trigger', err);
+        }
+    };
+
     const handleVehicleSubmit = async (e) => {
         e.preventDefault();
         setVehicleError('');
@@ -148,6 +159,16 @@ export default function DriverDashboard() {
 
                     <div className="card">
                         <h2 style={{ marginBottom: '20px' }}>🚙 Vehicle Registration</h2>
+
+                        {driver.approvalStatus === 'PENDING_VERIFICATION' && (
+                            <div className="badge badge-warning" style={{ width: '100%', padding: '16px', marginBottom: '20px', justifyContent: 'center', textAlign: 'center', fontSize: '1rem', background: 'var(--warning-bg)', border: '1px solid var(--warning)' }}>
+                                <div>
+                                    <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⏳</div>
+                                    <strong>Pending KYC Approval</strong><br />
+                                    <span style={{ fontSize: '0.85rem' }}>Your vehicle details have been submitted. You cannot go online until an Admin verifies your documents. Check back soon!</span>
+                                </div>
+                            </div>
+                        )}
 
                         {vehicleError && <div className="badge badge-danger" style={{ width: '100%', padding: '12px', marginBottom: '16px', justifyContent: 'center' }}>{vehicleError}</div>}
 
@@ -185,14 +206,14 @@ export default function DriverDashboard() {
                                 <label>License Plate Number</label>
                                 <input className="input" placeholder="e.g. DL-01-AB-1234" value={vehicleForm.plateNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, plateNumber: e.target.value.toUpperCase() })} required style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }} />
                             </div>
-                            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={vehicleLoading}>
-                                {vehicleLoading ? <><div className="spinner" style={{ width: '18px', height: '18px' }} /> Registering...</> : '✅ Register Vehicle & Go Online'}
+                            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={vehicleLoading || driver.approvalStatus === 'PENDING_VERIFICATION'}>
+                                {vehicleLoading ? <><div className="spinner" style={{ width: '18px', height: '18px' }} /> Registering...</> : '✅ Submit Vehicle for KYC Approval'}
                             </button>
                         </form>
 
                         <div className="glass-card mt-3" style={{ padding: '12px' }}>
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-                                ℹ️ Your driver account will be auto-approved once you register your vehicle. You can then start accepting ride requests immediately.
+                                ℹ️ Your driver account and vehicle details must be manually verified by our team. Approval usually takes 24 hours.
                             </p>
                         </div>
                     </div>
@@ -282,6 +303,10 @@ export default function DriverDashboard() {
                     {activeRide.status === 'IN_PROGRESS' && (
                         <button onClick={completeTrip} className="btn btn-success btn-full btn-lg">🏁 Complete Trip</button>
                     )}
+
+                    <div style={{ marginTop: '16px' }}>
+                        <button onClick={handleSOS} className="btn btn-danger btn-full" style={{ background: '#dc2626', color: 'white', fontWeight: 800 }}>🚨 TRIGGER SOS</button>
+                    </div>
                 </div>
             )}
 

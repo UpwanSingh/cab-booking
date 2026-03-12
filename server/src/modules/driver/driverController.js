@@ -118,9 +118,9 @@ exports.addVehicle = async (req, res, next) => {
         }
 
         driver.vehicleId = vehicle._id;
-        // Auto-approve the driver when they register a vehicle
+        // Require manual KYC approval by Admin
         if (driver.approvalStatus !== 'APPROVED') {
-            driver.approvalStatus = 'APPROVED';
+            driver.approvalStatus = 'PENDING_VERIFICATION';
         }
         await driver.save();
 

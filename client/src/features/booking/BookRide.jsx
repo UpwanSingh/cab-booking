@@ -249,6 +249,17 @@ export default function BookRide() {
         } finally { setLoading(false); }
     };
 
+    const handleSOS = async () => {
+        if (!activeRide) return;
+        if (!window.confirm("CRITICAL: Are you sure you want to trigger an Emergency SOS? This will alert Admins immediately.")) return;
+        try {
+            await api.post(`/rides/${activeRide._id}/sos`);
+            setRideStatus('🚨 EMERGENCY SOS ACTIVATED');
+        } catch (err) {
+            console.error('SOS failed to trigger', err);
+        }
+    };
+
     const cancelRide = async () => {
         if (!activeRide) return;
         try { await api.patch(`/rides/${activeRide._id}/cancel`, { reason: 'Changed plans' }); resetAll(); }
@@ -294,7 +305,7 @@ export default function BookRide() {
 
     return (
         <div className="page animate-fadeIn">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', minHeight: 'calc(100vh - 120px)' }}>
+            <div className="bookride-layout">
                 {/* Map */}
                 <div style={{ position: 'relative' }}>
                     <div style={{
@@ -515,7 +526,10 @@ export default function BookRide() {
                     )}
 
                     {activeRide && !pendingPayment && (
-                        <button onClick={cancelRide} className="btn btn-danger btn-full">✕ Cancel Ride</button>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <button onClick={cancelRide} className="btn btn-secondary btn-full">✕ Cancel Ride</button>
+                            <button onClick={handleSOS} className="btn btn-danger btn-full" style={{ background: '#dc2626', color: 'white', fontWeight: 800 }}>🚨 SOS</button>
+                        </div>
                     )}
                 </div>
             </div>

@@ -5,7 +5,7 @@ const { authorize } = require('../../core/middleware/authorize');
 const {
     estimate, requestRide, acceptRide, rejectRide,
     arrivedAtPickup, startTrip, completeTrip, cancelRide,
-    getRide, getHistory,
+    getRide, getHistory, raiseSOS
 } = require('./rideController');
 
 router.post('/estimate', protect, estimate);
@@ -18,5 +18,6 @@ router.patch('/:id/arrived', protect, authorize('DRIVER'), arrivedAtPickup);
 router.patch('/:id/start', protect, authorize('DRIVER'), startTrip);
 router.patch('/:id/complete', protect, authorize('DRIVER'), completeTrip);
 router.patch('/:id/cancel', protect, cancelRide);
+router.post('/:id/sos', protect, raiseSOS);
 
 module.exports = router;

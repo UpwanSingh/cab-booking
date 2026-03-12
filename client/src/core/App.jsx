@@ -13,6 +13,7 @@ import Earnings from '../features/payment/Earnings';
 import AdminDashboard from '../features/admin/AdminDashboard';
 import DriverApproval from '../features/driver/DriverApproval';
 import RideMonitor from '../features/booking/RideMonitor';
+import SupportBubble from '../shared/components/SupportBubble';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -98,6 +99,7 @@ export default function App() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to={getHome()} />} />
       </Routes>
+      <SupportBubble />
     </>
   );
 }
