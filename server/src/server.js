@@ -6,6 +6,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 const { Server } = require('socket.io');
 
 const connectDB = require('./core/config/db');
@@ -53,6 +56,13 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
+
+// Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+// Data Sanitization against XSS
+app.use(xss());
+// Prevent HTTP Parameter Pollution
+app.use(hpp());
 
 // Global Rate limiting
 const limiter = rateLimit({
