@@ -1,1 +1,0 @@
-mongodb+srv://upwan2428cseaiml135_db_user:KsI5QkEyOKlm6Pa7@cluster0.lfdqj9g.mongodb.net/?appName=Cluster0
