@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import useRazorpay from 'react-razorpay';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline, useMap } from 'react-leaflet';
 import { useAuth } from '../../core/context/AuthContext';
 import { useSocket } from '../../core/context/SocketContext';
@@ -65,6 +66,7 @@ async function searchPlaces(query) {
 
 export default function BookRide() {
     const { user } = useAuth();
+    const [Razorpay] = useRazorpay();
     const socket = useSocket();
     const [pickup, setPickup] = useState(null);
     const [drop, setDrop] = useState(null);
@@ -117,8 +119,9 @@ export default function BookRide() {
             const method = data.paymentMethod || 'CASH';
             setCompletedRideId(data.rideId);
             if (method !== 'CASH') {
-                setRideStatus('Trip completed! Processing payment...');
+                setRideStatus('Trip completed! Waiting for payment...');
                 setPendingPayment(data);
+                initiateRazorpayPayment(data.fare.total, data.rideId);
             } else {
                 setRideStatus(`Trip completed! Paid ₹${data.fare.total} in Cash.`);
                 setTimeout(() => { setActiveRide(null); setRideStatus(''); setDriverLocation(null); setShowRating(true); }, 2000);
@@ -278,16 +281,65 @@ export default function BookRide() {
     const center = [28.6139, 77.2090];
     const currentStep = !pickup ? 1 : !drop ? 2 : !estimates ? 3 : !activeRide ? 4 : 5;
 
-    const simulatePayment = () => {
-        setPaymentProcessing(true);
-        setTimeout(() => {
-            setPaymentProcessing(false); setPaymentSuccess(true);
-            setTimeout(() => {
-                setPendingPayment(null); setPaymentSuccess(false);
-                setActiveRide(null); setRideStatus(''); setDriverLocation(null);
-                setShowRating(true);
-            }, 2000);
-        }, 2000);
+    const initiateRazorpayPayment = async (amount, rideId) => {
+        try {
+            setPaymentProcessing(true);
+
+            // 1. Create order on backend
+            const { data } = await api.post('/payments/create-order', { amount });
+            const order = data.data.order;
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_dummy', // Fallback config
+                amount: order.amount,
+                currency: order.currency,
+                name: 'CabGo Rides',
+                description: `Payment for Ride ${rideId.substring(0, 6)}`,
+                order_id: order.id,
+                handler: async (response) => {
+                    // 2. Verify signature on backend
+                    try {
+                        await api.post('/payments/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        });
+                        setPaymentSuccess(true);
+                        setTimeout(() => {
+                            setPendingPayment(null);
+                            setPaymentSuccess(false);
+                            setActiveRide(null); setRideStatus(''); setDriverLocation(null);
+                            setShowRating(true);
+                        }, 2000);
+                    } catch (err) {
+                        alert('Payment Verification Failed!');
+                        setPaymentProcessing(false);
+                    }
+                },
+                prefill: {
+                    name: user?.name,
+                    email: user?.email,
+                    contact: user?.phone
+                },
+                theme: {
+                    color: '#6366f1'
+                }
+            };
+
+            const rzpClient = new Razorpay(options);
+
+            rzpClient.on('payment.failed', function (response) {
+                alert(`Payment failed: ${response.error.description}`);
+                setPaymentProcessing(false);
+            });
+
+            rzpClient.open();
+
+        } catch (error) {
+            console.error('Razorpay Error:', error);
+            alert('Failed to initialize payment gateway.');
+            setPaymentProcessing(false);
+        }
     };
 
     const searchDropdownStyle = {
@@ -534,7 +586,7 @@ export default function BookRide() {
                 </div>
             </div>
 
-            {/* Payment Modal */}
+            {/* Payment Modal (Loading/Success State only since Razorpay overlay handles the card input) */}
             {pendingPayment && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5,8,15,0.85)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div className="card" style={{ width: '400px', maxWidth: '90%', padding: '32px', overflow: 'hidden' }}>
@@ -542,33 +594,19 @@ export default function BookRide() {
                             <div style={{ textAlign: 'center' }}>
                                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--success)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', margin: '0 auto 16px' }}>✓</div>
                                 <h2>Payment Successful!</h2>
-                                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>₹{pendingPayment.fare?.total || 0} paid securely.</p>
+                                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>₹{pendingPayment.fare?.total || 0} paid securely via Razorpay.</p>
+                            </div>
+                        ) : paymentProcessing ? (
+                            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                                <div className="spinner" style={{ width: '40px', height: '40px', margin: '0 auto 24px', borderColor: 'var(--accent)', borderTopColor: 'transparent', borderWidth: '4px' }} />
+                                <h2>Complete Payment</h2>
+                                <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '0.9rem' }}>Please complete the ₹{pendingPayment.fare?.total || 0} transaction in the secure Razorpay window.</p>
+                                <button onClick={() => setPendingPayment(null)} className="btn btn-secondary mt-3" style={{ fontSize: '0.8rem' }}>Cancel</button>
                             </div>
                         ) : (
-                            <div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                                    <h2 style={{ margin: 0 }}>Secure Checkout</h2>
-                                    <span style={{ fontSize: '1.5rem' }}>🔒</span>
-                                </div>
-                                <div style={{ background: 'var(--bg-glass)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '24px', border: '1px solid var(--border)' }}>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Amount to Pay</div>
-                                    <div style={{ fontSize: '2.5rem', fontWeight: 700, marginTop: '4px' }}>₹{pendingPayment.fare?.total || 0}</div>
-                                </div>
-                                <div className="form-group">
-                                    <label>Card Details</label>
-                                    <div style={{ display: 'flex', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', alignItems: 'center', gap: '8px' }}>
-                                        <span>💳</span>
-                                        <input type="text" value="•••• •••• •••• 4242" readOnly style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontFamily: 'monospace', fontSize: '1rem' }} />
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
-                                        <input type="text" value="12/28" readOnly className="input" style={{ textAlign: 'center' }} />
-                                        <input type="password" value="123" readOnly className="input" style={{ textAlign: 'center' }} />
-                                    </div>
-                                </div>
-                                <button onClick={simulatePayment} className="btn btn-primary btn-full btn-lg" style={{ marginTop: '24px' }} disabled={paymentProcessing}>
-                                    {paymentProcessing ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><div className="spinner" style={{ width: '18px', height: '18px', borderTopColor: 'white' }} /> Processing...</span> : `Pay ₹${pendingPayment.fare?.total || 0}`}
-                                </button>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '16px' }}>Simulated Payment • No real charge</p>
+                            <div style={{ textAlign: 'center' }}>
+                                <h2>Cash/Wallet Payment</h2>
+                                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Proceeding with ride completion...</p>
                             </div>
                         )}
                     </div>
