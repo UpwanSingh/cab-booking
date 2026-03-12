@@ -292,7 +292,7 @@ export default function BookRide() {
 
     const searchDropdownStyle = {
         position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
-        background: 'var(--bg-surface)', border: '1px solid var(--border)',
+        background: 'var(--bg-secondary)', border: '1px solid var(--border)',
         borderRadius: '0 0 var(--radius-sm) var(--radius-sm)',
         maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
     };
@@ -556,7 +556,7 @@ export default function BookRide() {
                                 </div>
                                 <div className="form-group">
                                     <label>Card Details</label>
-                                    <div style={{ display: 'flex', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ display: 'flex', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', alignItems: 'center', gap: '8px' }}>
                                         <span>💳</span>
                                         <input type="text" value="•••• •••• •••• 4242" readOnly style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', outline: 'none', fontFamily: 'monospace', fontSize: '1rem' }} />
                                     </div>
