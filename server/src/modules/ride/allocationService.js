@@ -1,6 +1,7 @@
 const Driver = require('../driver/driverModel');
 const Vehicle = require('../driver/vehicleModel');
 const { haversineDistance } = require('../../core/utils/haversine');
+const { sendPushNotification } = require('../../core/services/fcmService');
 
 /**
  * Find nearest available driver to a pickup point
@@ -68,6 +69,16 @@ async function assignRide(ride, io) {
             vehicleType: ride.vehicleType,
             distanceToPickup: Math.round(distToPickup * 10) / 10,
         });
+
+        // Fire native push notification to wake up their phone
+        if (driver.fcmToken) {
+            sendPushNotification(
+                driver.fcmToken,
+                'New Ride Request! 🚕',
+                `${Math.round(distToPickup * 10) / 10}km away. ₹${ride.estimatedFare} Est. Fare.`,
+                { rideId: ride._id.toString(), type: 'NEW_RIDE' }
+            );
+        }
 
         // Wait 15 seconds for driver response (in-memory simple approach)
         const accepted = await waitForResponse(ride._id, driver._id, 15000);

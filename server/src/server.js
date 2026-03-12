@@ -54,13 +54,24 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// Rate limiting
+// Global Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 200,
-    message: { success: false, error: { message: 'Too many requests, please try again later.' } },
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300, // Limit each IP to 300 requests per window
+    message: { success: false, error: { message: 'Too many requests from this IP, please try again later.' } },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 app.use('/api', limiter);
+
+// Strict Rate Limiting for Booking & Auth endpoints to prevent spam
+const strictLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 10, // 10 requests per minute
+    message: { success: false, error: { message: 'Too many rapid requests. Please slow down.' } },
+});
+app.use('/api/v1/rides/request', strictLimiter);
+app.use('/api/v1/auth', strictLimiter);
 
 // Routes
 app.get('/api/health', (req, res) => {

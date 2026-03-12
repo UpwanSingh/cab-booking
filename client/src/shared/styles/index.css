@@ -832,3 +832,10 @@ tr:hover td {
   width: 40px;
   height: 40px;
 }
+
+/* ============================================= */
+/* LEAFLET MAP SMOOTH ANIMATIONS                 */
+/* ============================================= */
+.leaflet-marker-icon {
+  transition: transform 1s linear;
+}

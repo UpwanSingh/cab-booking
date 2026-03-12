@@ -20,8 +20,9 @@ const driverSchema = new mongoose.Schema({
         insurance: { type: String, default: '' },
         backgroundCheck: { type: String, default: '' },
     },
-    approvalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+    approvalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED', 'PENDING_VERIFICATION'], default: 'PENDING' },
     fleetId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    fcmToken: { type: String, default: null }, // Firebase Cloud Messaging Device Token
 }, { timestamps: true });
 
 driverSchema.index({ currentLocation: '2dsphere' });

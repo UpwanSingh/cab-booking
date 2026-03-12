@@ -129,3 +129,21 @@ exports.addVehicle = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Update FCM Push Token
+// @route   PATCH /api/v1/drivers/fcm-token
+exports.updateFcmToken = async (req, res, next) => {
+    try {
+        const { fcmToken } = req.body;
+        const driver = await Driver.findOneAndUpdate(
+            { userId: req.user._id },
+            { fcmToken },
+            { new: true }
+        );
+        if (!driver) return res.json({ success: true, message: 'Driver profile not setup yet' }); // Ignore for passengers
+
+        res.json({ success: true, data: { message: 'FCM Token updated' } });
+    } catch (error) {
+        next(error);
+    }
+};
